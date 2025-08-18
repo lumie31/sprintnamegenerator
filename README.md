@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sprint Name Generator
+
+A web application that generates creative and memorable names for agile sprints using AI.
+
+## Features
+
+- 🎯 **Sprint Number Input**: Enter any sprint number to generate a creative name
+- 🤖 **AI-Powered**: Uses OpenAI's GPT-3.5-turbo for creative name generation
+- 🎨 **Beautiful UI**: Modern, responsive design with smooth animations
+- 📋 **Copy to Clipboard**: One-click copying of generated names
+- 🔄 **Fallback System**: Works offline with pre-defined creative names
+- 📱 **Mobile Responsive**: Works perfectly on all devices
+
+## Examples
+
+- Sprint 12 → "Midnight Train"
+- Sprint 16 → "Sweet Sixteen"
+- Sprint 14 → "Spr1nt 4ever"
+- Sprint 7 → "Lucky Seven"
+- Sprint 25 → "Quarter Century"
+
+## Tech Stack
+
+- **Frontend**: Next.js 14 with TypeScript
+- **Styling**: Tailwind CSS
+- **AI**: OpenAI GPT-3.5-turbo API
+- **HTTP Client**: Native fetch API
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
+
+```bash
+git clone <repository-url>
+cd sprintnamegen
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Set up OpenAI API key:
+
+   - Get an API key from [OpenAI Platform](https://platform.openai.com/api-keys)
+   - Create a `.env.local` file in the root directory
+   - Add: `OPENAI_API_KEY=your_openai_api_key_here`
+
+4. Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## How It Works
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Input**: User enters a sprint number
+2. **AI Generation**: The app sends a prompt to OpenAI's GPT-3.5-turbo model
+3. **Fallback**: If AI fails, uses pre-defined creative names
+4. **Display**: Shows the generated name with copy functionality
 
-## Learn More
+## API Endpoints
 
-To learn more about Next.js, take a look at the following resources:
+### POST `/api/generate-sprint-name`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Generates a creative sprint name based on the provided sprint number.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Request Body:**
 
-## Deploy on Vercel
+```json
+{
+  "sprintNumber": 12
+}
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Response:**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```json
+{
+  "sprintName": "Midnight Train",
+  "sprintNumber": 12
+}
+```
