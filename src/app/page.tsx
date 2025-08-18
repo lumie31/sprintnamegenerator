@@ -118,7 +118,7 @@ export default function SprintNameGenerator() {
             Sprint Name Generator
           </h1>
           <p className='text-gray-600 dark:text-gray-300 text-base md:text-lg transition-colors duration-300'>
-            🏃‍♂️💨 Generate creative names for your agile sprints
+            🏃‍♂️ Generate creative names for your agile sprints 💨
           </p>
         </div>
 
