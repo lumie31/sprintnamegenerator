@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react';
 
 export default function SprintNameGenerator() {
   const [sprintNumber, setSprintNumber] = useState('');
-  const [sprintName, setSprintName] = useState('');
+  const [sprintNames, setSprintNames] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [copied, setCopied] = useState(false);
-  const [copyAnimation, setCopyAnimation] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [copiedText, setCopiedText] = useState<string | null>(null);
 
   // Sync initial toggle icon state after hydration
   useEffect(() => {
@@ -36,7 +36,7 @@ export default function SprintNameGenerator() {
 
     setIsLoading(true);
     setError('');
-    setSprintName('');
+    setSprintNames([]);
 
     try {
       const response = await fetch('/api/generate-sprint-name', {
@@ -53,7 +53,13 @@ export default function SprintNameGenerator() {
         throw new Error(data.error || 'Failed to generate sprint name');
       }
 
-      setSprintName(data.sprintName);
+      if (Array.isArray(data.sprintNames)) {
+        setSprintNames(data.sprintNames);
+      } else if (typeof data.sprintName === 'string' && data.sprintName) {
+        setSprintNames([data.sprintName]);
+      } else {
+        setSprintNames([]);
+      }
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Failed to generate sprint name'
@@ -69,24 +75,24 @@ export default function SprintNameGenerator() {
     }
   };
 
-  const copyToClipboard = async () => {
+  const copyToClipboard = async (text: string, index?: number) => {
     try {
-      await navigator.clipboard.writeText(sprintName);
-      setCopied(true);
-      setCopyAnimation(true);
-      setTimeout(() => setCopyAnimation(false), 300);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
+      await navigator.clipboard.writeText(text);
+    } catch {
       const textArea = document.createElement('textarea');
-      textArea.value = sprintName;
+      textArea.value = text;
       document.body.appendChild(textArea);
       textArea.select();
       document.execCommand('copy');
       document.body.removeChild(textArea);
-      setCopied(true);
-      setCopyAnimation(true);
-      setTimeout(() => setCopyAnimation(false), 300);
-      setTimeout(() => setCopied(false), 2000);
+    }
+    if (typeof index === 'number') {
+      setCopiedIndex(index);
+      setCopiedText(text);
+      setTimeout(() => {
+        setCopiedIndex(null);
+        setCopiedText(null);
+      }, 1500);
     }
   };
 
@@ -167,36 +173,79 @@ export default function SprintNameGenerator() {
             </div>
           )}
 
-          {/* Result Section */}
-          {sprintName && (
-            <div className='text-center'>
-              <div className='mb-4'>
-                <h2 className='text-lg font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300'>
-                  Your Sprint Name:
-                </h2>
-                <div className='bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6 transition-colors duration-300'>
-                  <h3 className='text-2xl md:text-3xl font-bold text-green-800 dark:text-green-300 mb-2 break-words transition-colors duration-300'>
-                    {sprintName}
-                  </h3>
-                  <p className='text-green-600 dark:text-green-400 text-sm transition-colors duration-300'>
-                    Sprint {sprintNumber}
-                  </p>
-                </div>
-              </div>
+          {/* Result Section (multiple names) */}
+          {sprintNames.length > 0 && (
+            <div>
+              <h2 className='text-center text-lg font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300'>
+                Select preferred sprint name:
+              </h2>
 
-              {/* Copy Button */}
-              <button
-                onClick={copyToClipboard}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm ${
-                  copyAnimation ? 'copy-animation' : ''
-                } ${
-                  copied
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-300 dark:border-green-700'
-                    : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600 border border-gray-200 dark:border-slate-600'
-                }`}
-              >
-                {copied ? '✓ Copied!' : 'Copy to Clipboard'}
-              </button>
+              <div className='space-y-3'>
+                {sprintNames.map((name, index) => (
+                  <div
+                    key={name}
+                    className='relative group bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-lg px-4 py-3 transition-colors duration-200 transform hover:shadow-lg hover:scale-[1.01] cursor-pointer'
+                    onClick={() => copyToClipboard(name, index)}
+                    role='button'
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        copyToClipboard(name, index);
+                      }
+                    }}
+                  >
+                    <div className='pr-10'>
+                      <span className='block text-lg md:text-xl font-semibold text-green-800 dark:text-green-300 break-words transition-colors duration-300'>
+                        {name}
+                      </span>
+                    </div>
+                    {/* Right-side icon: copy on hover, check when copied */}
+                    <div
+                      className={
+                        'pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 transition-all duration-200 ' +
+                        (copiedIndex === index
+                          ? 'opacity-100 scale-110'
+                          : 'opacity-0 group-hover:opacity-100 group-hover:scale-100')
+                      }
+                    >
+                      {copiedIndex === index ? (
+                        <svg
+                          xmlns='http://www.w3.org/2000/svg'
+                          viewBox='0 0 24 24'
+                          fill='currentColor'
+                          className='w-5 h-5 text-green-600 dark:text-green-400 animate-pulse'
+                          aria-hidden='true'
+                        >
+                          <path d='M9 16.2l-3.5-3.5L4 14.2 9 19l11-11-1.5-1.5z' />
+                        </svg>
+                      ) : (
+                        <svg
+                          xmlns='http://www.w3.org/2000/svg'
+                          viewBox='0 0 24 24'
+                          fill='currentColor'
+                          className='w-5 h-5 text-slate-600 dark:text-slate-300'
+                          aria-hidden='true'
+                        >
+                          <path d='M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z' />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className='text-center text-xs mt-2 text-gray-500 dark:text-gray-400 flex items-center justify-center gap-2'>
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  viewBox='0 0 24 24'
+                  fill='currentColor'
+                  className='w-4 h-4 text-gray-500 dark:text-gray-400'
+                  aria-hidden='true'
+                >
+                  <path d='M12 2C6.48 2 2 6.48 2 12s4.52 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3.5a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zM11 11h2v6h-2v-6z' />
+                </svg>
+                <span>Tip: Click your preferred sprint name to copy.</span>
+              </p>
             </div>
           )}
         </div>
@@ -207,6 +256,12 @@ export default function SprintNameGenerator() {
             Made with ❤️ and 🤖
           </p>
         </div>
+        {/* Copied alert */}
+        {copiedIndex !== null && (
+          <div className='fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-3 py-2 rounded-md bg-green-600 text-white text-xs md:text-sm shadow-lg animate-bounce'>
+            Copied!
+          </div>
+        )}
       </div>
     </div>
   );
