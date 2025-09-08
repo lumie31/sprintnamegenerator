@@ -177,7 +177,7 @@ export default function SprintNameGenerator() {
           {sprintNames.length > 0 && (
             <div>
               <h2 className='text-center text-lg font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300'>
-                Select preferred sprint name:
+                Choose your preferred sprint name:
               </h2>
 
               <div className='space-y-3'>
